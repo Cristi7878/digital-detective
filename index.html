@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Detectivul digital — Email real vs fals</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #fff;
+      --muted: #6b7280;
+      --accent: #1f6feb;
+      --danger: #db3b3b;
+    }
+    body {
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: var(--bg);
+      color: #111;
+      margin: 20px;
+    }
+    h1 { font-size: 20px; margin: 0 0 12px; }
+    p.lead { margin: 0 0 18px; color: var(--muted); }
+    .wrap { display: flex; gap: 18px; flex-wrap: wrap; }
+    .email-card {
+      background: var(--card);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(11, 20, 40, 0.06);
+      width: calc(50% - 9px);
+      min-width: 300px;
+      padding: 14px;
+      position: relative;
+    }
+    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 8px;
+      background: linear-gradient(135deg,#e6eefc,#d9f1ff);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; color: #0b61d6;
+    }
+    .meta { flex: 1; }
+    .from { font-weight: 600; }
+    .address { color: var(--muted); font-size: 13px; }
+    .subject { font-weight: 700; margin: 10px 0; }
+    .body-text { line-height: 1.45; color: #222; }
+    .link {
+      display: inline-block; margin-top: 10px; padding: 8px 10px;
+      background: #eef6ff; border-radius: 6px;
+      color: var(--accent); text-decoration: none;
+    }
+    .controls { margin: 12px 0 6px; display: flex; gap: 8px; }
+    button {
+      border: 0; padding: 8px 12px; border-radius: 6px;
+      background: #eef2ff; color: var(--accent); cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #fff; }
+    .result { margin-top: 10px; font-weight: 600; }
+
+    .clue {
+      position: absolute;
+      border: 2px dashed rgba(219,59,59,0.85);
+      border-radius: 6px;
+      pointer-events: none;
+      display: none;
+    }
+    .clue.show { display: block; }
+    .clue-label {
+      position: absolute;
+      background: var(--danger);
+      color: #fff;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .legend {
+      margin-top: 14px; background: #fff; padding: 10px;
+      border-radius: 8px; box-shadow: 0 1px 6px rgba(11,20,40,0.04);
+    }
+    .legend b { color: var(--danger); }
+    footer { margin-top: 16px; color: var(--muted); font-size: 13px; }
+    @media (max-width:760px){ .email-card { width:100%; } }
+
+    /* --- STIL PAROLĂ --- */
+    #password-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(245,247,251,0.96);
+      backdrop-filter: blur(2px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #password-box {
+      background: #fff;
+      padding: 20px 28px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 320px;
+    }
+    #password-box input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 180px;
+      margin-top: 10px;
+    }
+    #password-box button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #1f6feb;
+      color: white;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+    #password-box .msg { margin-top: 10px; color: #b91c1c; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Detectivul digital — Email real vs. fals</h1>
+  <p class="lead">Compară cele două imagini (emailuri). Alege care e <strong>real</strong> și apoi apasă <em>Verifică</em>. Poți apăsa <em>Arată indicii</em> pentru a evidenția părțile suspecte din emailul fals.<div><strong>Instrucțiuni rapide:</strong> 1) Apasă <em>Bifați care e real</em> și apoi dă click pe stânga sau dreapta pentru a alege. 2) Vezi feedback-ul colorat. 3) Apasă <em>Arată indicii</em> pentru a evidenția elementele suspecte din emailul fals.</div></p>
+
+  <div class="controls" style="margin-bottom:8px">
+    <button id="selectReal" class="primary">Bifează pe cel real </button>
+    <button id="showClues">Arată indicii (fals)</button>
+    <button id="reset">Resetează</button>
+  </div>
+
+  <div class="wrap">
+
+    <!-- EMAIL REAL -->
+    <article class="email-card" id="card-left">
+      <div class="header">
+        <div class="avatar">B</div>
+        <div class="meta">
+          <div class="from">Biblioteca Județeană Vâlcea</div>
+          <div class="address">info@biblioteca-valcea.ro</div>
+        </div>
+        <div class="email-date" style="text-align:right;color:var(--muted);font-size:13px"></div>
+      </div>
+      <div class="subject">Participare la concursul „Lectura te face mare!”</div>
+      <div class="body-text">
+        Bună ziua,<br>
+        Vă invităm să participați la concursul județean <strong>„Lectura te face mare!”</strong>, care se va desfășura sâmbătă, <strong>2 noiembrie</strong>, la Biblioteca Județeană Vâlcea.<br>
+        Pentru înscrieri, accesați linkul oficial:
+        <div style="margin-top:8px"><a class="link" href="#">https://biblioteca-valcea.ro/lectura2025</a></div>
+        <div style="margin-top:12px">Cu stimă,<br>Echipa Bibliotecii Județene</div>
+      </div>
+      <div class="result" id="res-left"></div>
+    </article>
+
+    <!-- EMAIL FALS -->
+    <article class="email-card" id="card-right">
+      <div class="header">
+        <div class="avatar">B</div>
+        <div class="meta">
+          <div class="from">Biblioteca Județeană</div>
+          <div class="address">info@biblioteca-vallcea.ro</div>
+        </div>
+        <div class="email-date" style="text-align:right;color:var(--muted);font-size:13px"></div>
+      </div>
+      <div class="subject">Participare la concursul "Lectura te face mare"</div>
+      <div class="body-text">
+        Buna ziua,<br>
+        Va invitam sa participati la concursul judetean "Lectura te face mare", care se va desfasura simbata, 2 noiembrie, la Biblioteca Judeteana.<br>
+        Pentru inscrieri, accesati linkul:
+        <div style="margin-top:8px"><a class="link" href="#">https://biblioteca-valcea.ro-lectura2025.com</a></div>
+        Va rugam completati cit mai repede formularul atasat.<br>
+        Echipa Bibliotecii
+      </div>
+
+      <div class="result" id="res-right"></div>
+
+      <!-- Indicii -->
+      <div class="clue" id="clue-addr" style="top:46px;left:120px;width:240px;height:22px">
+        <div class="clue-label" style="top:-26px;left:0">Adresă expeditor suspectă</div>
+      </div>
+      <div class="clue" id="clue-link" style="top:200px;left:18px;width:320px;height:26px">
+        <div class="clue-label" style="top:-26px;left:0">Link fals</div>
+      </div>
+      <div class="clue" id="clue-diac" style="top:140px;left:18px;width:380px;height:44px">
+        <div class="clue-label" style="top:-26px;left:0">Lipsesc diacritice / greșeli</div>
+      </div>
+      <div class="clue" id="clue-pressure" style="top:250px;left:18px;width:360px;height:46px">
+        <div class="clue-label" style="top:-26px;left:0">Presiune / solicitare rapidă</div>
+      </div>
+    </article>
+  </div>
+
+  <footer>owner Cristi Mihai - Project IVI</footer>
+
+  <script>
+    /* logica principală a jocului */
+    let leftChosen = false;
+    let rightChosen = false;
+
+    document.getElementById('selectReal').addEventListener('click', ()=>{
+      alert('Alegeți acum: dați click pe cardul din stânga sau din dreapta pentru a marca care pare REAL.');
+      document.getElementById('card-left').style.cursor='pointer';
+      document.getElementById('card-right').style.cursor='pointer';
+    });
+
+    document.getElementById('card-left').addEventListener('click', ()=>{
+      clearResults();
+      leftChosen = true; rightChosen = false;
+      document.getElementById('card-left').style.outline='3px solid rgba(31,111,235,0.18)';
+      document.getElementById('card-right').style.outline='none';
+      checkAnswer('left');
+    });
+    document.getElementById('card-right').addEventListener('click', ()=>{
+      clearResults();
+      leftChosen = false; rightChosen = true;
+      document.getElementById('card-right').style.outline='3px solid rgba(31,111,235,0.18)';
+      document.getElementById('card-left').style.outline='none';
+      checkAnswer('right');
+    });
+
+    function clearResults(){
+      document.getElementById('res-left').textContent='';
+      document.getElementById('res-right').textContent='';
+    }
+
+    function checkAnswer(side){
+      const leftRes = document.getElementById('res-left');
+      const rightRes = document.getElementById('res-right');
+      if(side==='left'){
+        leftRes.innerHTML = '<span style="color:green;font-weight:bold;">✅ Corect — acesta pare real.</span>';
+        rightRes.innerHTML = '<span style="color:red;font-weight:bold;">❌ Acesta este falsificat (malițios). Apasă \"Arată indicii\" pentru explicații.</span>';
+      } else {
+        leftRes.innerHTML = '<span style="color:green;font-weight:bold;">❌ Atenție — acesta este REAL. Ai ales greșit.</span>';
+        rightRes.innerHTML = '<span style="color:red;font-weight:bold;">❌ Ai selectat emailul fals ca fiind real — acesta este de fapt FALS.</span>';
+      }
+    }
+
+    document.getElementById('showClues').addEventListener('click', ()=>{
+      const clues = document.querySelectorAll('.clue');
+      const anyShown = Array.from(clues).some(c=>c.classList.contains('show'));
+      clues.forEach(c=>{ if(!anyShown) c.classList.add('show'); else c.classList.remove('show'); });
+    });
+
+    document.getElementById('reset').addEventListener('click', ()=>{
+      leftChosen = rightChosen = false;
+      document.getElementById('card-left').style.outline='none';
+      document.getElementById('card-right').style.outline='none';
+      clearResults();
+      document.querySelectorAll('.clue').forEach(c=>c.classList.remove('show'));
+      document.getElementById('card-left').style.cursor='default';
+      document.getElementById('card-right').style.cursor='default';
+    });
+  </script>
+
+  <script>
+  // dată automată
+  function formatDateTime() {
+    const now = new Date();
+    const options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return now.toLocaleString('ro-RO', options).replace(',', '');
+  }
+  document.querySelectorAll('.email-date').forEach(el => { el.textContent = formatDateTime(); });
+  </script>
+
+  <!-- 🔒 SUPRAPUNERE CU PAROLĂ -->
+  <div id="password-overlay">
+    <div id="password-box">
+      <h3>Acces protejat</h3>
+      <p>Introduceți parola pentru a vizualiza pagina:</p>
+      <input id="pw" type="password" placeholder="Parolă">
+      <button id="btn">Intră</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+
+  <script>
+  const PAROLA = "Secret"; // parola corectă (nu se afișează pe pagină)
+  const overlay = document.getElementById('password-overlay');
+  const msg = document.getElementById('msg');
+  const input = document.getElementById('pw');
+
+  // verificare parolă
+  document.getElementById('btn').addEventListener('click', () => {
+    if (input.value.trim() === PAROLA) {
+      overlay.style.display = 'none';
+      localStorage.setItem('acces_detectiv', '1');
+    } else {
+      msg.textContent = 'Parolă incorectă.';
+    }
+  });
+
+  // dacă parola a fost introdusă anterior
+  if (localStorage.getItem('acces_detectiv') === '1') {
+    overlay.style.display = 'none';
+  }
+
+  // Enter = confirmare
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn').click();
+  });
+  </script>
+
+</body>
+</html>
+
