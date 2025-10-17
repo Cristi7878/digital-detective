@@ -67,22 +67,11 @@
 
     /* 🔹 Responsive adjustments */
     @media (max-width: 860px) {
-      .wrap {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-      .card {
-        padding:16px;
-      }
-      .controls button {
-        flex:1 1 45%;
-        font-size:15px;
-      }
-      pre.examples {
-        font-size:12px;
-      }
+      .wrap { grid-template-columns: 1fr; gap: 12px; }
+      .card { padding:16px; }
+      .controls button { flex:1 1 45%; font-size:15px; }
+      pre.examples { font-size:12px; }
     }
-
     @media (max-width: 500px) {
       body { margin: 10px; }
       .card { padding:14px; }
@@ -239,7 +228,21 @@ purple-river-snow-2024    (21 chars)
   checkBtn.addEventListener('click', () => {
     const p = pwEl.value.trim();
     out.innerHTML='';
-    if (!p){ hackTimeEl.textContent='Introdu o parolă.'; rulesEl.innerHTML=''; scoreEl.textContent='— / 5'; return; }
+    if (!p){ 
+      hackTimeEl.textContent='Introdu o parolă.'; 
+      rulesEl.innerHTML=''; 
+      scoreEl.textContent='— / 5'; 
+      return; 
+    }
+
+    if (p.length < 5) {
+      out.innerHTML = `<div class="warn-block">⚠️ Hai să fim serioși 😄 — introdu o parolă mai serioasă!</div>`;
+      hackTimeEl.textContent = '—';
+      compTimesEl.textContent = '';
+      rulesEl.innerHTML = '';
+      scoreEl.textContent = '— / 5';
+      return;
+    }
 
     const { log10SecOffline, log10SecOnline } = computeEstimates(p);
     const offlineStr = formatLargeSeconds(log10SecOffline);
