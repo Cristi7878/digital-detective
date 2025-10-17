@@ -54,6 +54,14 @@
     #nextBtn:hover {
       background-color: #00863f;
     }
+    #restartBtn {
+      background-color: #ffb300;
+      color: #111;
+      margin-top: 20px;
+    }
+    #restartBtn:hover {
+      background-color: #e09e00;
+    }
   </style>
 </head>
 <body>
@@ -75,10 +83,10 @@
     <button id="nextBtn" class="btn" style="display:none;" onclick="urmatoarea()">Următoarea →</button>
 
     <p id="rezultatFinal"></p>
+    <button id="restartBtn" class="btn" style="display:none;" onclick="reincepe()">🔁 Reia testul</button>
   </div>
 
   <script>
-    // 🔐 Configurare parolă
     const parolaCorecta = "secreta";
     const extensie = ".webp";
 
@@ -93,7 +101,6 @@
       }
     }
 
-    // 🧠 Test cu imagini una câte una
     const imagini = [
       "a-left", "b-left", "c-right", "d-right", "e-right",
       "f-left", "g-left", "h-right", "i-right"
@@ -103,6 +110,9 @@
     let scor = 0;
 
     function pornesteTestul() {
+      indexCurent = 0;
+      scor = 0;
+      document.getElementById("restartBtn").style.display = "none";
       afiseazaImagine();
     }
 
@@ -133,7 +143,6 @@
       text.style.color = corect ? "green" : "red";
       container.appendChild(text);
 
-      // dezactivează butoanele după alegere
       document.querySelectorAll(".answer").forEach(btn => btn.disabled = true);
 
       document.getElementById("nextBtn").style.display = "inline-block";
@@ -162,6 +171,11 @@
       document.getElementById("rezultatFinal").innerHTML = `
         🧠 Ai recunoscut <strong>${scor}/${imagini.length}</strong> imagini corect.<br><br>${text}
       `;
+      document.getElementById("restartBtn").style.display = "inline-block";
+    }
+
+    function reincepe() {
+      pornesteTestul();
     }
   </script>
 
@@ -171,4 +185,3 @@
   </footer>
 </body>
 </html>
-
