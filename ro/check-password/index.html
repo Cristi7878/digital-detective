@@ -1,1 +1,328 @@
+ <!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Password Tester</title>
+  <style>
+    :root{
+      --bg: #0f1724;
+      --card: #071020;
+      --accent: #06b6d4;
+      --good: #16a34a;
+      --bad: #ef4444;
+      --muted: #9ca3af;
+      --glass: rgba(255,255,255,0.03);
+    }
+    body{
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,#06121a 0%, #0b1b26 100%);
+      color: #e6eef6;
+      margin: 20px;
+      display:flex;
+      justify-content:center;
+    }
+    .wrap{width:980px;display:grid;grid-template-columns:380px 1fr;gap:18px}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.04);
+      padding:18px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6)
+    }
+    h1{margin:0;font-size:20px;letter-spacing:0.2px}
+    .lede{color:var(--muted);margin-top:6px;font-size:13px}
+    label{display:block;margin:14px 0 8px;font-weight:700}
+    .pw-row{display:flex;gap:8px;align-items:center}
+    input[type="password"], input[type="text"]{
+      flex:1;padding:12px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);
+      background:var(--glass);color:inherit;font-size:15px;
+      outline:none;
+    }
+    .eye-btn{background:transparent;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:8px;border-radius:8px}
+    .controls{display:flex;gap:10px;margin-top:12px}
+    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn-check{background:linear-gradient(90deg,var(--accent), #0ea5a4);color:#021018}
+    .btn-clear{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .stat-big{font-size:18px;font-weight:800;color:#fff}
+    .stat-sub{color:var(--muted);font-size:13px;margin-top:6px}
+    ul.rules{margin:12px 0 0;padding-left:18px;color:var(--bad);font-weight:700}
+    ul.rules li{margin:8px 0}
+    .rule-ok{color:var(--good);margin-right:8px}
+    .rule-bad{color:var(--bad);margin-right:8px}
+    pre.examples{background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;color:#e6eef6;overflow:auto;margin-top:10px}
+    .note{margin-top:12px;color:var(--muted);font-size:13px}
+    .highlight{background:linear-gradient(90deg, rgba(6,182,212,0.12), rgba(6,182,212,0.06));padding:10px;border-radius:8px}
+    .time-warning{color:var(--bad);font-weight:800}
+    .time-ok{color:var(--good);font-weight:800}
+    .left-top{display:flex;flex-direction:column;gap:12px}
+    .big-box{padding:14px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.03)}
+    .warn-block{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.14);padding:10px;margin-top:8px;border-radius:8px;color:var(--bad);font-weight:700}
+    .ok-block{background:rgba(22,163,74,0.06);border:1px solid rgba(22,163,74,0.12);padding:10px;margin-top:8px;border-radius:8px;color:var(--good);font-weight:800}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- left column -->
+    <div class="card">
+      <div class="left-top">
+        <div class="big-box">
+          <div class="stat-big" id="hackTime">—</div>
+          <div class="stat-sub" id="compTimes">Estimare offline &amp; online</div>
+        </div>
+
+        <div class="big-box">
+          <div style="font-weight:800">Reguli verificate (text roșu):</div>
+          <ul class="rules" id="rules"></ul>
+        </div>
+
+        <div class="big-box">
+          <div style="font-weight:800">Scor complexitate: <span id="score">— / 5</span></div>
+          <div class="note" id="minNote">Parole puternice: minim 12 caractere recomandat; ideal 16+ sau passphrase (4+ cuvinte).</div>
+        </div>
+
+        <div class="big-box highlight">
+          <div style="font-weight:800">Exemple parole puternice (≥12 caractere)</div>
+          <pre class="examples">
+G#9tLq2!bR4s#1   (13 chars)
+V7r!pX2mQz#12   (13 chars)
+Bucurie!Librarie7Muzica  (23 chars)
+SoareMunteCafea!Plaja     (22 chars) - passphrase style
+purple-river-snow-2024    (21 chars)
+          </pre>
+        </div>
+
+        <div class="note">Pagina rulează local și nu stochează nimic în spate.</div>
+      </div>
+    </div>
+
+    <!-- right column -->
+    <div class="card">
+      <h1>Password Tester</h1>
+      <div class="lede">Introdu parola (doar câmpul de mai jos). Apasă <strong>Verifică</strong>.</div>
+
+      <label>Parolă</label>
+      <div class="pw-row">
+        <input id="pw" type="password" autocomplete="new-password" placeholder="Introdu parola..." />
+        <button id="toggleEye" class="eye-btn" title="Arată/Ascunde parola">👁</button>
+      </div>
+
+      <div class="controls">
+        <button id="check" class="btn-check">Verifică</button>
+        <button id="clear" class="btn-clear">Clear</button>
+      </div>
+
+      <div id="out" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const pwEl = document.getElementById('pw');
+  const toggleEye = document.getElementById('toggleEye');
+  const checkBtn = document.getElementById('check');
+  const clearBtn = document.getElementById('clear');
+  const hackTimeEl = document.getElementById('hackTime');
+  const compTimesEl = document.getElementById('compTimes');
+  const rulesEl = document.getElementById('rules');
+  const scoreEl = document.getElementById('score');
+  const out = document.getElementById('out');
+
+  const MINLEN = 12;
+  const BONUS_LEN = 16;
+  const OFFLINE_RATE = 1e9; // guesses/sec
+  const ONLINE_RATE = 100; // guesses/sec
+  const SIX_MONTHS_SEC = 6 * 30 * 24 * 3600;
+  const LOG10_SIX_MONTHS = Math.log10(SIX_MONTHS_SEC);
+
+  function log10(x){ return Math.log10(x); }
+
+  function computeLog10Keyspace(password) {
+    if (/\s+/.test(password.trim()) && password.trim().split(/\s+/).length >= 2 && /^[A-Za-z\s]+$/.test(password.trim())) {
+      const words = password.trim().split(/\s+/).length;
+      const diceW = 7776;
+      return words * log10(diceW);
+    }
+    let pool = 0;
+    if (/[a-z]/.test(password)) pool += 26;
+    if (/[A-Z]/.test(password)) pool += 26;
+    if (/[0-9]/.test(password)) pool += 10;
+    if (/[^A-Za-z0-9\s]/.test(password)) pool += 33;
+    if (pool === 0) pool = 26;
+    const L = password.length;
+    return L * log10(pool);
+  }
+
+  function computeEstimates(password) {
+    const log10Key = computeLog10Keyspace(password);
+    const lgTwo = Math.log10(2);
+    const log10Median = log10Key - lgTwo;
+    const log10SecOffline = log10Median - log10(OFFLINE_RATE);
+    const log10SecOnline = log10Median - log10(ONLINE_RATE);
+    return { log10SecOffline, log10SecOnline, log10Key };
+  }
+
+  function formatLargeSeconds(log10sec) {
+    if (!isFinite(log10sec)) return 'infinite';
+    if (log10sec < 6) {
+      const sec = Math.pow(10, log10sec);
+      if (sec < 1) return sec.toFixed(2) + ' sec';
+      if (sec < 60) return sec.toFixed(1) + ' sec';
+      const mins = sec/60;
+      if (mins < 60) return Math.round(mins) + ' min';
+      const hrs = mins/60;
+      if (hrs < 24) return Math.round(hrs) + ' hours';
+      const days = hrs/24;
+      if (days < 365) return Math.round(days) + ' days';
+      const yrs = days/365;
+      return Math.round(yrs) + ' years';
+    }
+    const years = Math.pow(10, log10sec - Math.log10(3600*24*365));
+    if (log10sec - Math.log10(3600*24*365) > 6) return years.toExponential(2) + ' years';
+    return Math.round(years) + ' years';
+  }
+
+  // pattern detection -> returns {type, severity, secondsEstimate}
+  function detectPattern(password) {
+    const p = password.trim();
+    // common dictionary tokens
+    const commonWords = /(password|qwerty|letmein|admin|welcome|iloveyou|123456|abc123|passw0rd|root)/i;
+    if (commonWords.test(p)) return {type:'common-word', severity:9, secs:1};
+
+    // simple keyboard sequences
+    const keyboardSeq = /(qwerty|asdf|zxcv|12345|5678)/i;
+    if (keyboardSeq.test(p)) return {type:'keyboard-seq', severity:8, secs:1};
+
+    // name + year patterns: letters + 2-4 digits
+    if (/^[A-Za-z]{2,}\d{2,4}$/.test(p) || /^\d{2,4}[A-Za-z]{2,}$/.test(p)) {
+      return {type:'name+year', severity:9, secs:1};
+    }
+
+    // simple word + numbers or repeated patterns
+    if (/^[A-Za-z]+\d+$/.test(p) || /^[A-Za-z]+\d+[A-Za-z]*$/.test(p)) {
+      return {type:'word+digits', severity:7, secs:2};
+    }
+
+    // all lowercase short words
+    if (/^[a-z]{6,12}$/.test(p)) return {type:'lower-short', severity:7, secs:3};
+
+    // years or dates only
+    if (/^\d{4}$/.test(p)) return {type:'year-only', severity:9, secs:1};
+
+    // repeated chars / sequences
+    if (/^(.)\1{5,}$/.test(p) || /(0123|abcd|11111)/.test(p)) return {type:'repeat-seq', severity:8, secs:1};
+
+    // otherwise nothing flagged
+    return null;
+  }
+
+  function checkPasswordRules(p) {
+    const checks = [
+      { label: `Lungime >= ${MINLEN}`, ok: p.length >= MINLEN },
+      { label: 'Litere mari (A-Z)', ok: /[A-Z]/.test(p) },
+      { label: 'Cifre (0-9)', ok: /[0-9]/.test(p) },
+      { label: 'Caracter special (!@#...)', ok: /[^A-Za-z0-9\s]/.test(p) },
+      { label: `Lungime bonus >= ${BONUS_LEN}`, ok: p.length >= BONUS_LEN }
+    ];
+    return checks;
+  }
+
+  function computeScore(checks) {
+    return checks.reduce((s,c) => s + (c.ok ? 1 : 0), 0);
+  }
+
+  // eye toggle
+  toggleEye.addEventListener('click', () => {
+    if (pwEl.type === 'password') {
+      pwEl.type = 'text'; toggleEye.textContent = '🙈'; toggleEye.title = 'Ascunde parola';
+    } else {
+      pwEl.type = 'password'; toggleEye.textContent = '👁'; toggleEye.title = 'Arată parola';
+    }
+    pwEl.focus();
+  });
+
+  checkBtn.addEventListener('click', () => {
+    const raw = pwEl.value;
+    const p = (raw || '').trim();
+    out.innerHTML = '';
+    if (!p) {
+      hackTimeEl.textContent = 'Introdu o parola.';
+      compTimesEl.textContent = '';
+      rulesEl.innerHTML = '';
+      scoreEl.textContent = '— / 5';
+      return;
+    }
+
+    // computed estimates
+    const { log10SecOffline, log10SecOnline } = computeEstimates(p);
+    const offlineStr = formatLargeSeconds(log10SecOffline);
+    const onlineStr = formatLargeSeconds(log10SecOnline);
+
+    // detect pattern
+    const pattern = detectPattern(p);
+
+    // display computed times
+    let compHtml = `Estimare offline (matematic): <strong>${offlineStr}</strong>`;
+    compHtml += `<br>Estimare online (site limitat): <strong>${onlineStr}</strong>`;
+    compTimesEl.innerHTML = compHtml;
+
+    // show primary offline time (but if pattern, show pattern-specific short time too)
+    if (pattern) {
+      // show both: pattern realistic + computed
+      hackTimeEl.innerHTML = `<span class="time-warning">${pattern.secs} sec</span> <span style="font-weight:700;color:var(--muted);margin-left:8px"> (atac pe tipar/dict: ${pattern.type})</span>`;
+    } else {
+      // if computed > 6 months show message
+      const offlineGreaterThanSixMonths = log10SecOffline > Math.log10(6*30*24*3600);
+      if (offlineGreaterThanSixMonths) hackTimeEl.innerHTML = `<span class="time-ok">durează mai mult de 6 luni</span>`;
+      else hackTimeEl.innerHTML = `<span class="time-warning">${offlineStr}</span>`;
+    }
+
+    // rules
+    const checks = checkPasswordRules(p);
+    rulesEl.innerHTML = '';
+    checks.forEach(c => {
+      const li = document.createElement('li');
+      const mark = document.createElement('span');
+      mark.textContent = c.ok ? '✅' : '✗';
+      mark.className = c.ok ? 'rule-ok' : 'rule-bad';
+      li.appendChild(mark);
+      const txt = document.createElement('span');
+      txt.textContent = ' ' + c.label;
+      txt.style.color = 'var(--bad)'; // text red as requested
+      txt.style.fontWeight = '700';
+      li.appendChild(txt);
+      rulesEl.appendChild(li);
+    });
+
+    const score = computeScore(checks);
+    scoreEl.textContent = `${score} / 5`;
+
+    // output message
+    if (pattern) {
+      out.innerHTML = `<div class="warn-block">⚠️ Parola pare a fi predictibilă (${pattern.type}). Atacuri cu reguli/dict pot-o sparge în ~${pattern.secs} secunde.</div>
+      <div style="margin-top:8px;color:var(--muted)">NOTĂ: timpul matematic este afișat pentru comparație în partea stângă.</div>`;
+    } else {
+      const offlineGreaterThanSixMonths = log10SecOffline > Math.log10(6*30*24*3600);
+      if (offlineGreaterThanSixMonths) {
+        out.innerHTML = `<div class="ok-block">✅ Parola este suficient de puternică (timp offline > 6 luni).</div>`;
+      } else {
+        out.innerHTML = `<div class="warn-block">⚠️ Parola se poate sparge în mai puțin de 6 luni - recomand schimbare.</div>`;
+      }
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    pwEl.value = '';
+    hackTimeEl.textContent = '—';
+    compTimesEl.textContent = '';
+    rulesEl.innerHTML = '';
+    scoreEl.textContent = '— / 5';
+    out.innerHTML = '';
+  });
+
+  // init
+  hackTimeEl.textContent = '—';
+  scoreEl.textContent = '— / 5';
+})();
+</script>
+</body>
+</html>
 
