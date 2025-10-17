@@ -1,8 +1,5 @@
-# digital-detective
-An educational exercise that helps students to recognize fake emails in a fun and interactive way.
-
-# Digital Detective 🕵️‍♀️  
-An interactive educational exercise designed for students (ages 10–14) to improve their attention and digital literacy by spotting fake or suspicious emails.
+# Digital Detective 
+**An interactive educational exercise designed for students (ages 10–14) to improve their attention and digital literacy by spotting fake or suspicious emails.**
 
 ## 💡 What it teaches
 Students learn to:
