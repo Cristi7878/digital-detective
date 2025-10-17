@@ -4,7 +4,7 @@
 ## 👨‍🏫 Author
 **Cristi Mihai**  
 Project IVI / Project HackerVille
-[https://www.projectivi.ro](https://wwww.projectivi.ro)
+[https://www.projectivi.ro](https://www.projectivi.ro)
 
 ---
 
