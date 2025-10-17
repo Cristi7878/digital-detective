@@ -1,1 +1,174 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>Test – Reală sau AI?</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+      margin: 20px;
+    }
+    h2 { color: #333; }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 15px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    img {
+      width: 100%;
+      border-radius: 10px;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+    .btn {
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 25px;
+      margin: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 40%;
+      max-width: 200px;
+    }
+    .btn:hover { background-color: #005fa3; }
+    #rezultatFinal {
+      margin-top: 30px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    #login { margin-top: 100px; }
+    #test { display: none; }
+    #nextBtn {
+      margin-top: 20px;
+      background-color: #00a651;
+    }
+    #nextBtn:hover {
+      background-color: #00863f;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="login">
+    <h2>🔐 Acces restricționat</h2>
+    <p>Introduceți parola pentru a începe testul:</p>
+    <input type="password" id="parola" placeholder="Parola" style="padding:8px; font-size:16px;">
+    <button class="btn" onclick="verificaParola()">Accesează</button>
+    <p id="eroare" style="color:red;"></p>
+  </div>
+
+  <div id="test">
+    <h2>🔍 Test: Poți identifica imaginea reală?</h2>
+    <p id="instructiuni">Alege unde crezi că e imaginea reală:</p>
+
+    <div id="cardContainer" class="card"></div>
+
+    <button id="nextBtn" class="btn" style="display:none;" onclick="urmatoarea()">Următoarea →</button>
+
+    <p id="rezultatFinal"></p>
+  </div>
+
+  <script>
+    // 🔐 Configurare parolă
+    const parolaCorecta = "secreta";
+    const extensie = ".webp";
+
+    function verificaParola() {
+      const input = document.getElementById("parola").value.trim();
+      if (input === parolaCorecta) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("test").style.display = "block";
+        pornesteTestul();
+      } else {
+        document.getElementById("eroare").textContent = "Parolă greșită. Încearcă din nou.";
+      }
+    }
+
+    // 🧠 Test cu imagini una câte una
+    const imagini = [
+      "a-left", "b-left", "c-right", "d-right", "e-right",
+      "f-left", "g-left", "h-right", "i-right"
+    ];
+
+    let indexCurent = 0;
+    let scor = 0;
+
+    function pornesteTestul() {
+      afiseazaImagine();
+    }
+
+    function afiseazaImagine() {
+      const container = document.getElementById("cardContainer");
+      const nume = imagini[indexCurent];
+      const caleImagine = `images/${nume}${extensie}`;
+      container.innerHTML = `
+        <h3>Imaginea ${indexCurent + 1} din ${imagini.length}</h3>
+        <img src="${caleImagine}" alt="Imagine ${nume}">
+        <div>
+          <button class="btn answer" onclick="verifica('left', '${nume}')">Stânga</button>
+          <button class="btn answer" onclick="verifica('right', '${nume}')">Dreapta</button>
+        </div>
+      `;
+      document.getElementById("nextBtn").style.display = "none";
+      document.getElementById("rezultatFinal").textContent = "";
+    }
+
+    function verifica(alegere, nume) {
+      const corect = nume.includes(alegere);
+      if (corect) scor++;
+
+      const container = document.getElementById("cardContainer");
+      const text = document.createElement("p");
+      text.textContent = corect ? "✔️ Corect!" : "❌ Greșit!";
+      text.style.fontWeight = "bold";
+      text.style.color = corect ? "green" : "red";
+      container.appendChild(text);
+
+      // dezactivează butoanele după alegere
+      document.querySelectorAll(".answer").forEach(btn => btn.disabled = true);
+
+      document.getElementById("nextBtn").style.display = "inline-block";
+    }
+
+    function urmatoarea() {
+      indexCurent++;
+      if (indexCurent < imagini.length) {
+        afiseazaImagine();
+      } else {
+        afiseazaRezultat();
+      }
+    }
+
+    function afiseazaRezultat() {
+      const container = document.getElementById("cardContainer");
+      container.innerHTML = "";
+      document.getElementById("nextBtn").style.display = "none";
+
+      let text;
+      if (scor >= 9) text = "Recunoști foarte bine și pari foarte conștient(ă)!";
+      else if (scor >= 7) text = "Te descurci bine, dar trebuie să rămâi vigilent(ă).";
+      else if (scor >= 4) text = "Ai nevoie să te uiți mai atent(ă) la detalii și să-ți formezi o cultură a detaliilor.";
+      else text = "E un început bun — continuă să exersezi ochiul critic!";
+
+      document.getElementById("rezultatFinal").innerHTML = `
+        🧠 Ai recunoscut <strong>${scor}/${imagini.length}</strong> imagini corect.<br><br>${text}
+      `;
+    }
+  </script>
+
+  <footer style="margin-top:24px;color:#666;font-size:13px;">
+    © Project IVI — Educational Use |
+    <a href="credits.html">Image Credits</a>
+  </footer>
+</body>
+</html>
 
