@@ -1,5 +1,5 @@
 # Digital Detective 
-**An interactive educational exercise designed for students (ages 10–14) to improve their attention and digital literacy by spotting fake or suspicious emails.**
+**An interactive educational exercise designed for students (ages 7–16) to improve their attention and digital literacy by spotting fake or suspicious emails.**
   
 ## 👨‍🏫 Author
 **Cristi Mihai**  
