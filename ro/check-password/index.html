@@ -1,4 +1,4 @@
- <!doctype html>
+<!doctype html>
 <html lang="ro">
 <head>
   <meta charset="utf-8"/>
@@ -22,11 +22,19 @@
       display:flex;
       justify-content:center;
     }
-    .wrap{width:980px;display:grid;grid-template-columns:380px 1fr;gap:18px}
+    .wrap{
+      width:100%;
+      max-width:980px;
+      display:grid;
+      grid-template-columns:380px 1fr;
+      gap:18px;
+    }
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
       border: 1px solid rgba(255,255,255,0.04);
-      padding:18px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6)
+      padding:18px;
+      border-radius:12px;
+      box-shadow:0 10px 30px rgba(2,6,23,0.6);
     }
     h1{margin:0;font-size:20px;letter-spacing:0.2px}
     .lede{color:var(--muted);margin-top:6px;font-size:13px}
@@ -34,12 +42,11 @@
     .pw-row{display:flex;gap:8px;align-items:center}
     input[type="password"], input[type="text"]{
       flex:1;padding:12px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);
-      background:var(--glass);color:inherit;font-size:15px;
-      outline:none;
+      background:var(--glass);color:inherit;font-size:15px;outline:none;
     }
     .eye-btn{background:transparent;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:8px;border-radius:8px}
-    .controls{display:flex;gap:10px;margin-top:12px}
-    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .controls{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-weight:700;flex:1;min-width:120px;}
     .btn-check{background:linear-gradient(90deg,var(--accent), #0ea5a4);color:#021018}
     .btn-clear{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
     .stat-big{font-size:18px;font-weight:800;color:#fff}
@@ -48,7 +55,7 @@
     ul.rules li{margin:8px 0}
     .rule-ok{color:var(--good);margin-right:8px}
     .rule-bad{color:var(--bad);margin-right:8px}
-    pre.examples{background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;color:#e6eef6;overflow:auto;margin-top:10px}
+    pre.examples{background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;color:#e6eef6;overflow:auto;margin-top:10px;font-size:13px;}
     .note{margin-top:12px;color:var(--muted);font-size:13px}
     .highlight{background:linear-gradient(90deg, rgba(6,182,212,0.12), rgba(6,182,212,0.06));padding:10px;border-radius:8px}
     .time-warning{color:var(--bad);font-weight:800}
@@ -57,6 +64,33 @@
     .big-box{padding:14px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.03)}
     .warn-block{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.14);padding:10px;margin-top:8px;border-radius:8px;color:var(--bad);font-weight:700}
     .ok-block{background:rgba(22,163,74,0.06);border:1px solid rgba(22,163,74,0.12);padding:10px;margin-top:8px;border-radius:8px;color:var(--good);font-weight:800}
+
+    /* 🔹 Responsive adjustments */
+    @media (max-width: 860px) {
+      .wrap {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .card {
+        padding:16px;
+      }
+      .controls button {
+        flex:1 1 45%;
+        font-size:15px;
+      }
+      pre.examples {
+        font-size:12px;
+      }
+    }
+
+    @media (max-width: 500px) {
+      body { margin: 10px; }
+      .card { padding:14px; }
+      button { font-size:14px; padding:8px 10px; }
+      h1 { font-size:18px; }
+      .lede { font-size:12px; }
+      input[type="password"], input[type="text"] { font-size:14px; padding:10px; }
+    }
   </style>
 </head>
 <body>
@@ -85,7 +119,7 @@
 G#9tLq2!bR4s#1   (13 chars)
 V7r!pX2mQz#12   (13 chars)
 Bucurie!Librarie7Muzica  (23 chars)
-SoareMunteCafea!Plaja     (22 chars) - passphrase style
+SoareMunteCafea!Plaja     (22 chars)
 purple-river-snow-2024    (21 chars)
           </pre>
         </div>
@@ -128,10 +162,8 @@ purple-river-snow-2024    (21 chars)
 
   const MINLEN = 12;
   const BONUS_LEN = 16;
-  const OFFLINE_RATE = 1e9; // guesses/sec
-  const ONLINE_RATE = 100; // guesses/sec
-  const SIX_MONTHS_SEC = 6 * 30 * 24 * 3600;
-  const LOG10_SIX_MONTHS = Math.log10(SIX_MONTHS_SEC);
+  const OFFLINE_RATE = 1e9;
+  const ONLINE_RATE = 100;
 
   function log10(x){ return Math.log10(x); }
 
@@ -155,174 +187,91 @@ purple-river-snow-2024    (21 chars)
     const log10Key = computeLog10Keyspace(password);
     const lgTwo = Math.log10(2);
     const log10Median = log10Key - lgTwo;
-    const log10SecOffline = log10Median - log10(OFFLINE_RATE);
-    const log10SecOnline = log10Median - log10(ONLINE_RATE);
-    return { log10SecOffline, log10SecOnline, log10Key };
+    const log10SecOffline = log10Median - log10(1e9);
+    const log10SecOnline = log10Median - log10(100);
+    return { log10SecOffline, log10SecOnline };
   }
 
   function formatLargeSeconds(log10sec) {
-    if (!isFinite(log10sec)) return 'infinite';
-    if (log10sec < 6) {
-      const sec = Math.pow(10, log10sec);
-      if (sec < 1) return sec.toFixed(2) + ' sec';
-      if (sec < 60) return sec.toFixed(1) + ' sec';
-      const mins = sec/60;
-      if (mins < 60) return Math.round(mins) + ' min';
-      const hrs = mins/60;
-      if (hrs < 24) return Math.round(hrs) + ' hours';
-      const days = hrs/24;
-      if (days < 365) return Math.round(days) + ' days';
-      const yrs = days/365;
-      return Math.round(yrs) + ' years';
-    }
-    const years = Math.pow(10, log10sec - Math.log10(3600*24*365));
-    if (log10sec - Math.log10(3600*24*365) > 6) return years.toExponential(2) + ' years';
-    return Math.round(years) + ' years';
+    if (!isFinite(log10sec)) return '∞';
+    const sec = Math.pow(10, log10sec);
+    if (sec < 1) return sec.toFixed(2) + ' sec';
+    if (sec < 60) return sec.toFixed(1) + ' sec';
+    const mins = sec/60;
+    if (mins < 60) return Math.round(mins) + ' min';
+    const hrs = mins/60;
+    if (hrs < 24) return Math.round(hrs) + ' h';
+    const days = hrs/24;
+    if (days < 365) return Math.round(days) + ' zile';
+    const yrs = days/365;
+    return Math.round(yrs) + ' ani';
   }
 
-  // pattern detection -> returns {type, severity, secondsEstimate}
   function detectPattern(password) {
     const p = password.trim();
-    // common dictionary tokens
-    const commonWords = /(password|qwerty|letmein|admin|welcome|iloveyou|123456|abc123|passw0rd|root)/i;
-    if (commonWords.test(p)) return {type:'common-word', severity:9, secs:1};
-
-    // simple keyboard sequences
-    const keyboardSeq = /(qwerty|asdf|zxcv|12345|5678)/i;
-    if (keyboardSeq.test(p)) return {type:'keyboard-seq', severity:8, secs:1};
-
-    // name + year patterns: letters + 2-4 digits
-    if (/^[A-Za-z]{2,}\d{2,4}$/.test(p) || /^\d{2,4}[A-Za-z]{2,}$/.test(p)) {
-      return {type:'name+year', severity:9, secs:1};
-    }
-
-    // simple word + numbers or repeated patterns
-    if (/^[A-Za-z]+\d+$/.test(p) || /^[A-Za-z]+\d+[A-Za-z]*$/.test(p)) {
-      return {type:'word+digits', severity:7, secs:2};
-    }
-
-    // all lowercase short words
-    if (/^[a-z]{6,12}$/.test(p)) return {type:'lower-short', severity:7, secs:3};
-
-    // years or dates only
-    if (/^\d{4}$/.test(p)) return {type:'year-only', severity:9, secs:1};
-
-    // repeated chars / sequences
-    if (/^(.)\1{5,}$/.test(p) || /(0123|abcd|11111)/.test(p)) return {type:'repeat-seq', severity:8, secs:1};
-
-    // otherwise nothing flagged
+    if (/(password|qwerty|letmein|admin|welcome|iloveyou|123456|abc123|passw0rd|root)/i.test(p)) return {type:'common-word', secs:1};
+    if (/(qwerty|asdf|zxcv|12345|5678)/i.test(p)) return {type:'keyboard-seq', secs:1};
+    if (/^[A-Za-z]{2,}\d{2,4}$/.test(p) || /^\d{2,4}[A-Za-z]{2,}$/.test(p)) return {type:'name+year', secs:1};
+    if (/^[A-Za-z]+\d+$/.test(p)) return {type:'word+digits', secs:2};
+    if (/^[a-z]{6,12}$/.test(p)) return {type:'lower-short', secs:3};
+    if (/^\d{4}$/.test(p)) return {type:'year-only', secs:1};
+    if (/^(.)\1{5,}$/.test(p)) return {type:'repeat-seq', secs:1};
     return null;
   }
 
   function checkPasswordRules(p) {
     const checks = [
-      { label: `Lungime >= ${MINLEN}`, ok: p.length >= MINLEN },
+      { label: `Lungime ≥ ${MINLEN}`, ok: p.length >= MINLEN },
       { label: 'Litere mari (A-Z)', ok: /[A-Z]/.test(p) },
       { label: 'Cifre (0-9)', ok: /[0-9]/.test(p) },
       { label: 'Caracter special (!@#...)', ok: /[^A-Za-z0-9\s]/.test(p) },
-      { label: `Lungime bonus >= ${BONUS_LEN}`, ok: p.length >= BONUS_LEN }
+      { label: `Lungime bonus ≥ ${BONUS_LEN}`, ok: p.length >= BONUS_LEN }
     ];
     return checks;
   }
 
-  function computeScore(checks) {
-    return checks.reduce((s,c) => s + (c.ok ? 1 : 0), 0);
-  }
-
-  // eye toggle
   toggleEye.addEventListener('click', () => {
-    if (pwEl.type === 'password') {
-      pwEl.type = 'text'; toggleEye.textContent = '🙈'; toggleEye.title = 'Ascunde parola';
-    } else {
-      pwEl.type = 'password'; toggleEye.textContent = '👁'; toggleEye.title = 'Arată parola';
-    }
+    if (pwEl.type === 'password') { pwEl.type='text'; toggleEye.textContent='🙈'; }
+    else { pwEl.type='password'; toggleEye.textContent='👁'; }
     pwEl.focus();
   });
 
   checkBtn.addEventListener('click', () => {
-    const raw = pwEl.value;
-    const p = (raw || '').trim();
-    out.innerHTML = '';
-    if (!p) {
-      hackTimeEl.textContent = 'Introdu o parola.';
-      compTimesEl.textContent = '';
-      rulesEl.innerHTML = '';
-      scoreEl.textContent = '— / 5';
-      return;
-    }
+    const p = pwEl.value.trim();
+    out.innerHTML='';
+    if (!p){ hackTimeEl.textContent='Introdu o parolă.'; rulesEl.innerHTML=''; scoreEl.textContent='— / 5'; return; }
 
-    // computed estimates
     const { log10SecOffline, log10SecOnline } = computeEstimates(p);
     const offlineStr = formatLargeSeconds(log10SecOffline);
     const onlineStr = formatLargeSeconds(log10SecOnline);
-
-    // detect pattern
     const pattern = detectPattern(p);
 
-    // display computed times
-    let compHtml = `Estimare offline (matematic): <strong>${offlineStr}</strong>`;
-    compHtml += `<br>Estimare online (site limitat): <strong>${onlineStr}</strong>`;
-    compTimesEl.innerHTML = compHtml;
+    compTimesEl.innerHTML = `Offline: <strong>${offlineStr}</strong><br>Online: <strong>${onlineStr}</strong>`;
+    hackTimeEl.innerHTML = pattern ? `<span class="time-warning">${pattern.secs} sec</span> (${pattern.type})`
+                                   : `<span class="time-ok">${offlineStr}</span>`;
 
-    // show primary offline time (but if pattern, show pattern-specific short time too)
-    if (pattern) {
-      // show both: pattern realistic + computed
-      hackTimeEl.innerHTML = `<span class="time-warning">${pattern.secs} sec</span> <span style="font-weight:700;color:var(--muted);margin-left:8px"> (atac pe tipar/dict: ${pattern.type})</span>`;
-    } else {
-      // if computed > 6 months show message
-      const offlineGreaterThanSixMonths = log10SecOffline > Math.log10(6*30*24*3600);
-      if (offlineGreaterThanSixMonths) hackTimeEl.innerHTML = `<span class="time-ok">durează mai mult de 6 luni</span>`;
-      else hackTimeEl.innerHTML = `<span class="time-warning">${offlineStr}</span>`;
-    }
-
-    // rules
     const checks = checkPasswordRules(p);
-    rulesEl.innerHTML = '';
-    checks.forEach(c => {
-      const li = document.createElement('li');
-      const mark = document.createElement('span');
-      mark.textContent = c.ok ? '✅' : '✗';
-      mark.className = c.ok ? 'rule-ok' : 'rule-bad';
-      li.appendChild(mark);
-      const txt = document.createElement('span');
-      txt.textContent = ' ' + c.label;
-      txt.style.color = 'var(--bad)'; // text red as requested
-      txt.style.fontWeight = '700';
-      li.appendChild(txt);
+    rulesEl.innerHTML='';
+    checks.forEach(c=>{
+      const li=document.createElement('li');
+      li.innerHTML=`${c.ok?'✅':'✗'} <span style="color:var(--bad);font-weight:700">${c.label}</span>`;
       rulesEl.appendChild(li);
     });
-
-    const score = computeScore(checks);
+    const score = checks.filter(c=>c.ok).length;
     scoreEl.textContent = `${score} / 5`;
 
-    // output message
-    if (pattern) {
-      out.innerHTML = `<div class="warn-block">⚠️ Parola pare a fi predictibilă (${pattern.type}). Atacuri cu reguli/dict pot-o sparge în ~${pattern.secs} secunde.</div>
-      <div style="margin-top:8px;color:var(--muted)">NOTĂ: timpul matematic este afișat pentru comparație în partea stângă.</div>`;
-    } else {
-      const offlineGreaterThanSixMonths = log10SecOffline > Math.log10(6*30*24*3600);
-      if (offlineGreaterThanSixMonths) {
-        out.innerHTML = `<div class="ok-block">✅ Parola este suficient de puternică (timp offline > 6 luni).</div>`;
-      } else {
-        out.innerHTML = `<div class="warn-block">⚠️ Parola se poate sparge în mai puțin de 6 luni - recomand schimbare.</div>`;
-      }
-    }
+    if (pattern) out.innerHTML = `<div class="warn-block">⚠️ Parola e predictibilă (${pattern.type}), estimare ~${pattern.secs} sec.</div>`;
+    else if (log10SecOffline > Math.log10(6*30*24*3600))
+      out.innerHTML = `<div class="ok-block">✅ Puternică: durează peste 6 luni de spart.</div>`;
+    else
+      out.innerHTML = `<div class="warn-block">⚠️ Slabă: se poate sparge în mai puțin de 6 luni.</div>`;
   });
 
-  clearBtn.addEventListener('click', () => {
-    pwEl.value = '';
-    hackTimeEl.textContent = '—';
-    compTimesEl.textContent = '';
-    rulesEl.innerHTML = '';
-    scoreEl.textContent = '— / 5';
-    out.innerHTML = '';
+  clearBtn.addEventListener('click',()=>{
+    pwEl.value=''; hackTimeEl.textContent='—'; compTimesEl.textContent='';
+    rulesEl.innerHTML=''; scoreEl.textContent='— / 5'; out.innerHTML='';
   });
-
-  // init
-  hackTimeEl.textContent = '—';
-  scoreEl.textContent = '— / 5';
 })();
 </script>
 </body>
 </html>
-
